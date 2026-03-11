@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CenoCup - Champions Legends v35.0</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@300;400;700&family=Orbitron:wght@400;700&display=swap');
+
+        :root {
+            --ucl-blue: #001035;
+            --ucl-gold: #c3a361;
+            --ucl-silver: #e2e2e2;
+            --ucl-bronze: #cd7f32;
+            --danger: #ff4b2b;
+            --ucl-gradient: linear-gradient(135deg, #001035 0%, #002d72 100%);
+        }
+
+        body {
+            background: var(--ucl-blue);
+            background-image: radial-gradient(circle at center, #002d72 0%, #001035 100%);
+            background-attachment: fixed;
+            color: #fff; font-family: 'Montserrat', sans-serif;
+            margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center;
+        }
+
+        .container { width: 100%; max-width: 1400px; }
+        header { text-align: center; padding: 25px 0; cursor: pointer; border-bottom: 2px solid var(--ucl-gold); margin-bottom: 25px; }
+        header h1 { font-family: 'Cinzel', serif; font-size: 2rem; letter-spacing: 2px; margin: 0; color: #fff; }
+
+        .tabs { display: flex; gap: 5px; justify-content: center; margin-bottom: 25px; flex-wrap: wrap; }
+        .tab-btn {
+            background: rgba(255,255,255,0.05); color: var(--ucl-silver);
+            padding: 10px 15px; border-radius: 4px; border: 1px solid var(--ucl-gold);
+            cursor: pointer; font-family: 'Orbitron'; font-size: 0.6rem; transition: 0.3s; text-transform: uppercase;
+        }
+        .tab-btn.active { background: var(--ucl-gold); color: #000; font-weight: bold; box-shadow: 0 0 15px var(--ucl-gold); }
+
+        .table-wrapper { background: rgba(0, 16, 53, 0.95); backdrop-filter: blur(10px); border-radius: 4px; padding: 15px; border: 1px solid rgba(195,163,97,0.2); overflow-x: auto; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1200px; font-size: 0.85rem; }
+        th { padding: 12px; color: var(--ucl-gold); font-size: 0.65rem; text-transform: uppercase; border-bottom: 2px solid var(--ucl-gold); font-family: 'Orbitron'; background: rgba(0,0,0,0.2); }
+        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
+        tr:hover { background: rgba(255,255,255,0.03); }
+
+        .hall-box { background: var(--ucl-gradient); border: 2px solid var(--ucl-gold); border-radius: 15px; padding: 25px; margin-bottom: 40px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .hall-label { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: var(--ucl-gold); color: #000; padding: 5px 20px; font-family: 'Orbitron'; font-weight: bold; border-radius: 20px; font-size: 0.8rem; }
+        
+        .podium-wrapper { display: flex; justify-content: space-around; align-items: flex-end; gap: 10px; padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .podium-item { text-align: center; width: 120px; }
+        .podium-img { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #444; object-fit: cover; margin-bottom: 10px; background: #000; }
+        .podium-1 .podium-img { width: 110px; height: 110px; border-color: var(--ucl-gold); box-shadow: 0 0 20px var(--ucl-gold); }
+        .podium-1 { order: 2; margin-bottom: 20px; }
+        .podium-2 { order: 1; }
+        .podium-3 { order: 3; }
+        
+        .lanterna-section { margin-top: 20px; text-align: center; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; border: 1px dashed var(--danger); }
+        .lanterna-img { width: 60px; height: 60px; border-radius: 50%; border: 2px solid var(--danger); filter: grayscale(0.5); margin-bottom: 5px; }
+
+        #admin { display: none; background: #000; padding: 20px; border: 2px solid var(--ucl-gold); border-radius: 8px; margin-bottom: 20px; }
+        input { background: #222; border: 1px solid #444; color: #fff; padding: 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header onclick="openAdmin()">
+        <h1>CENO<span>CUP</span> CHAMPIONS <span>LEGENDS</span></h1>
+        <div style="font-family:'Orbitron'; font-size:0.5rem; color:var(--ucl-gold); letter-spacing:5px;">V35.0 TOTAL ANALYTICS</div>
+    </header>
+
+    <div id="admin">
+        <select id="admin-selector" onchange="renderEditor()" style="width:100%; margin-bottom:10px; padding:10px;"></select>
+        <div id="editor-container"></div>
+        <button onclick="addNewPlayer()" style="width:100%; margin:10px 0; padding:10px; background:transparent; color:var(--ucl-gold); border:1px solid var(--ucl-gold); cursor:pointer;">+ NOVO JOGADOR</button>
+        <div style="display:flex; gap:10px;">
+            <button onclick="saveAll()" style="flex:1; background:var(--ucl-gold); padding:15px; font-weight:bold; cursor:pointer;">SALVAR ALTERAÇÕES</button>
+            <button onclick="closeSeason()" style="flex:1; background:var(--danger); color:#fff; padding:15px; cursor:pointer;">ENCERRAR TEMPORADA</button>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button onclick="exportDB()" style="flex:0.5; background:#333; color:#fff; padding:10px;">BACKUP</button>
+            <button onclick="importDB()" style="flex:0.5; background:#333; color:#fff; padding:10px;">RESTAURAR</button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button id="t-tab" class="tab-btn active" onclick="switchTab('tabela')">🏆 Tabela</button>
+        <button id="r-tab" class="tab-btn" onclick="switchTab('ranking')">👑 Ranking Geral</button>
+        <button id="m-tab" class="tab-btn" onclick="switchTab('medalhas')">🏅 Medalhas</button>
+        <button id="p-tab" class="tab-btn" onclick="switchTab('poder')">⚡ Força</button>
+        <button id="v-tab" class="tab-btn" onclick="switchTab('rivalidades')">⚔️ Rivais</button>
+        <button id="g-tab" class="tab-btn" onclick="switchTab('galeria')">🏛️ Hall da Fama</button>
+    </div>
+
+    <div id="view-tabela">
+        <select id="season-view-selector" onchange="changeSeasonView(this.value)" style="width:100%; margin-bottom:15px; padding:12px; background:var(--ucl-blue); color:white; border:1px solid var(--ucl-gold);"></select>
+        <div class="table-wrapper"><table id="table-main"></table></div>
+    </div>
+
+    <div id="view-ranking" style="display:none">
+        <div class="table-wrapper"><table id="table-ranking"></table></div>
+    </div>
+
+    <div id="view-medalhas" style="display:none"><div class="table-wrapper"><table id="table-medalhas"></table></div></div>
+    <div id="view-poder" style="display:none"><div id="power-content" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:15px;"></div></div>
+    <div id="view-rivalidades" style="display:none"><div id="rival-content"></div></div>
+    <div id="view-galeria" style="display:none; flex-direction:column;"></div>
+</div>
+
+<script>
+    const STORAGE_KEY = 'cenocup_final_v35';
+    let db = JSON.parse(localStorage.getItem(STORAGE_KEY)) || { atual: [], historico: [] };
+    let currentSeasonView = 'atual';
+
+    function openAdmin() { if(prompt("Acesso:") === '123') document.getElementById('admin').style.display='block'; }
+
+    function switchTab(mode) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        ['view-tabela', 'view-ranking', 'view-medalhas', 'view-poder', 'view-rivalidades', 'view-galeria'].forEach(v => document.getElementById(v).style.display = 'none');
+        document.getElementById('view-' + mode).style.display = (mode === 'galeria') ? 'flex' : 'block';
+        document.getElementById(mode.charAt(0)+'-tab').classList.add('active');
+        window['render' + mode.charAt(0).toUpperCase() + mode.slice(1)]?.();
+    }
+
+    const calcF = (gp, gc) => parseFloat(((gp * 3.5) - (gc * 2.5)).toFixed(1));
+    const calcApr = (v, e, d) => { let t = (v + e + d) * 3; return t > 0 ? (((v*3)+e)/t*100).toFixed(1) : "0.0"; };
+
+    function renderTabela() {
+        const sel = document.getElementById('season-view-selector');
+        sel.innerHTML = '<option value="atual">⭐ ÉPOCA ATUAL</option>';
+        db.historico.forEach((h, i) => sel.innerHTML += `<option value="${i}">📂 ${h.nome}</option>`);
+        sel.value = currentSeasonView;
+        let list = currentSeasonView === 'atual' ? [...db.atual] : [...db.historico[currentSeasonView].dados];
+        list.sort((a,b) => ((b.v*3)+b.e) - ((a.v*3)+a.e) || (b.gp-b.gc) - (a.gp-a.gc));
+        document.getElementById('table-main').innerHTML = `<thead><tr><th>#</th><th style="text-align:left">TÉCNICO</th><th>J</th><th>PTS</th><th>V</th><th>E</th><th>D</th><th>GP</th><th>GS</th><th>SG</th><th>FORÇA</th></tr></thead>
+        <tbody>${list.map((j, i) => `<tr><td style="color:var(--ucl-gold); font-family:Orbitron;">${i+1}º</td><td style="text-align:left"><b>${j.tecnico}</b></td><td>${j.v+j.e+(j.d||0)}</td><td style="font-weight:bold; color:var(--ucl-gold)">${(j.v*3)+j.e}</td><td>${j.v}</td><td>${j.e}</td><td>${j.d||0}</td><td>${j.gp}</td><td>${j.gc}</td><td>${j.gp-j.gc}</td><td>${calcF(j.gp,j.gc)}</td></tr>`).join('')}</tbody>`;
+    }
+
+    function renderRanking() {
+        let s = {};
+        const proc = (l) => l.forEach(j => {
+            if(!s[j.tecnico]) s[j.tecnico] = { t:j.tecnico, part:0, j:0, v:0, e:0, d:0, gp:0, gc:0, pts:0, f:0 };
+            let x = s[j.tecnico]; x.part++; x.j += (j.v+j.e+(j.d||0)); x.v += j.v; x.e += j.e; x.d += (j.d||0);
+            x.gp += j.gp; x.gc += j.gc; x.pts += (j.v*3)+j.e; x.f += calcF(j.gp, j.gc);
+        });
+        db.historico.forEach(h => proc(h.dados)); proc(db.atual);
+        let sorted = Object.values(s).sort((a,b) => b.pts - a.pts || b.f - a.f);
+        document.getElementById('table-ranking').innerHTML = `<thead><tr><th>#</th><th style="text-align:left">TÉCNICO</th><th>PART</th><th>APR%</th><th>J</th><th>V</th><th>E</th><th>D</th><th>GF</th><th>GS</th><th>SG</th><th>PTS</th><th>FORÇA</th></tr></thead>
+        <tbody>${sorted.map((j, i) => `<tr><td>${i+1}</td><td style="text-align:left"><b>${j.t}</b></td><td>${j.part}</td><td>${calcApr(j.v,j.e,j.d)}%</td><td>${j.j}</td><td>${j.v}</td><td style="color:var(--neon-blue)">${j.e}</td><td>${j.d}</td><td>${j.gp}</td><td>${j.gc}</td><td>${j.gp-j.gc}</td><td style="font-weight:bold">${j.pts}</td><td style="color:var(--ucl-gold)">${j.f.toFixed(1)}</td></tr>`).join('')}</tbody>`;
+    }
+
+    function renderMedalhas() {
+        let m = {};
+        db.historico.forEach(h => {
+            h.dados.forEach((j, idx) => {
+                if(!m[j.tecnico]) m[j.tecnico] = { t:j.tecnico, g:0, s:0, b:0, p:0 };
+                if(idx === 0) m[j.tecnico].g++;
+                else if(idx === 1) m[j.tecnico].s++;
+                else if(idx === 2) m[j.tecnico].b++;
+                if(idx === h.dados.length - 1) m[j.tecnico].p++;
+            });
+        });
+        let sorted = Object.values(m).sort((a,b) => b.g - a.g || b.s - a.s || b.b - a.b);
+        document.getElementById('table-medalhas').innerHTML = `<thead><tr><th>#</th><th style="text-align:left">TÉCNICO</th><th>🥇 OURO</th><th>🥈 PRATA</th><th>🥉 BRONZE</th><th>💩 LANTERNA</th></tr></thead>
+        <tbody>${sorted.map((j, i) => `<tr><td>${i+1}º</td><td style="text-align:left"><b>${j.t}</b></td><td>${j.g}</td><td>${j.s}</td><td>${j.b}</td><td style="color:var(--danger)">${j.p}</td></tr>`).join('')}</tbody>`;
+    }
+
+    function renderPoder() {
+        let players = {};
+        const proc = (l, n) => l.forEach(j => {
+            if(!players[j.tecnico]) players[j.tecnico] = [];
+            players[j.tecnico].push({ epoca: n, forca: calcF(j.gp, j.gc) });
+        });
+        db.historico.forEach(h => proc(h.dados, h.nome)); proc(db.atual, "Atual");
+        document.getElementById('power-content').innerHTML = Object.keys(players).map(p => {
+            let pData = players[p];
+            let maxP = Math.max(...pData.map(d => d.forca));
+            return `<div style="background:rgba(255,255,255,0.03); border:1px solid rgba(195,163,97,0.2); border-radius:8px; padding:15px;">
+                <div style="font-family:'Orbitron'; color:var(--ucl-gold); margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:5px;">${p}</div>
+                ${pData.map(d => `<div style="display:flex; justify-content:space-between; font-size:0.75rem; padding:3px 0;"><span>${d.epoca}</span><span style="font-weight:bold; color:${d.forca===maxP?'#00ff87':(d.forca<0?'#ff4b2b':'#fff')}">${d.forca}</span></div>`).join('')}
+            </div>`;
+        }).join('');
+    }
+
+    function renderRivalidades() {
+        let s = {};
+        [...db.historico.flatMap(h => h.dados), ...db.atual].forEach(j => {
+            if(!s[j.tecnico]) s[j.tecnico] = { t:j.tecnico, f:0, c:0 };
+            s[j.tecnico].f += calcF(j.gp, j.gc); s[j.tecnico].c++;
+        });
+        let arr = Object.values(s).map(x => ({ t: x.t, m: x.f / x.c }));
+        let html = "", used = new Set();
+        arr.sort((a,b) => b.m - a.m).forEach(p => {
+            if(used.has(p.t)) return;
+            let riv = arr.filter(r => r.t !== p.t && !used.has(r.t)).sort((a,b) => Math.abs(a.m - p.m) - Math.abs(b.m - p.m))[0];
+            if(riv) {
+                used.add(p.t); used.add(riv.t);
+                html += `<div style="display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; gap:20px; padding:15px; background:rgba(255,255,255,0.03); margin-bottom:8px; border-radius:8px; border:1px solid rgba(195,163,97,0.1);">
+                    <div style="text-align:right"><b>${p.t}</b><br><small>Level: ${p.m.toFixed(1)}</small></div>
+                    <div style="font-family:Cinzel; color:var(--ucl-gold); font-size:1.2rem;">VS</div>
+                    <div style="text-align:left"><b>${riv.t}</b><br><small>Level: ${riv.m.toFixed(1)}</small></div>
+                </div>`;
+            }
+        });
+        document.getElementById('rival-content').innerHTML = html;
+    }
+
+    function renderGaleria() {
+        const gal = document.getElementById('view-galeria');
+        gal.innerHTML = db.historico.slice().reverse().map(h => {
+            const l = h.dados[h.dados.length-1];
+            return `
+            <div class="hall-box">
+                <div class="hall-label">${h.nome.toUpperCase()}</div>
+                <div class="podium-wrapper">
+                    <div class="podium-item podium-2">
+                        <img src="${h.dados[1]?h.dados[1].foto:''}" class="podium-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166120.png'"><br>
+                        <small>🥈 PRATA</small><br><b>${h.dados[1]?h.dados[1].tecnico:'-'}</b>
+                    </div>
+                    <div class="podium-item podium-1">
+                        <img src="${h.dados[0].foto}" class="podium-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166120.png'"><br>
+                        <span style="font-size:1.2rem;">🏆 CAMPEÃO</span><br><b style="color:var(--ucl-gold)">${h.dados[0].tecnico}</b>
+                    </div>
+                    <div class="podium-item podium-3">
+                        <img src="${h.dados[2]?h.dados[2].foto:''}" class="podium-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166120.png'"><br>
+                        <small>🥉 BRONZE</small><br><b>${h.dados[2]?h.dados[2].tecnico:'-'}</b>
+                    </div>
+                </div>
+                <div class="lanterna-section">
+                    <img src="${l.foto}" class="lanterna-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/166/166120.png'"><br>
+                    <b style="color:var(--danger)">💩 LANTERNA (Troféu Cocô)</b><br>
+                    <span>${l.tecnico}</span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function renderEditor() {
+        const m = document.getElementById('admin-selector').value;
+        const target = m === 'atual' ? db.atual : db.historico[m].dados;
+        document.getElementById('editor-container').innerHTML = target.map((j, i) => `
+            <div style="display:flex; gap:5px; margin-bottom:5px; background:#111; padding:5px; border-radius:4px; flex-wrap:wrap;">
+                <input style="width:110px" type="text" value="${j.tecnico}" onchange="upd('${m}',${i},'tecnico',this.value)">
+                V<input type="number" style="width:35px" value="${j.v}" onchange="upd('${m}',${i},'v',parseInt(this.value))">
+                E<input type="number" style="width:35px" value="${j.e}" onchange="upd('${m}',${i},'e',parseInt(this.value))">
+                D<input type="number" style="width:35px" value="${j.d||0}" onchange="upd('${m}',${i},'d',parseInt(this.value))">
+                GP<input type="number" style="width:40px" value="${j.gp}" onchange="upd('${m}',${i},'gp',parseInt(this.value))">
+                GS<input type="number" style="width:40px" value="${j.gc}" onchange="upd('${m}',${i},'gc',parseInt(this.value))">
+                <input style="flex:1" type="text" value="${j.foto||''}" placeholder="Foto" onchange="upd('${m}',${i},'foto',this.value)">
+                <button onclick="db.atual.splice(${i},1);renderEditor()">✕</button>
+            </div>`).join('');
+    }
+
+    function upd(m, idx, f, v) { if(m==='atual') db.atual[idx][f]=v; else db.historico[m].dados[idx][f]=v; }
+    function saveAll() { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); alert("Dados Sincronizados!"); location.reload(); }
+    function addNewPlayer() { db.atual.push({tecnico:"Novo", v:0, e:0, d:0, gp:0, gc:0, foto:""}); renderEditor(); }
+    function changeSeasonView(v) { currentSeasonView = v; renderTabela(); }
+    function exportDB() { const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db)); a.download = `CenoCup_Backup.json`; a.click(); }
+    function importDB() { const inp = document.createElement('input'); inp.type = 'file'; inp.onchange = e => { const r = new FileReader(); r.readAsText(e.target.files[0]); r.onload = ev => { db = JSON.parse(ev.target.result); saveAll(); }; }; inp.click(); }
+    function closeSeason() {
+        let n = prompt("Nome da Época:");
+        if(n && db.atual.length) {
+            db.atual.sort((a,b) => ((b.v*3)+b.e) - ((a.v*3)+a.e) || (b.gp-b.gc) - (a.gp-a.gc));
+            db.historico.push({ nome: n, dados: JSON.parse(JSON.stringify(db.atual)) });
+            db.atual = db.atual.map(j => ({...j, v:0, e:0, d:0, gp:0, gc:0}));
+            saveAll();
+        }
+    }
+
+    const adminSel = document.getElementById('admin-selector');
+    adminSel.innerHTML = '<option value="atual">Temporada Atual</option>';
+    db.historico.forEach((h, i) => adminSel.innerHTML += `<option value="${i}">${h.nome}</option>`);
+    renderTabela();
+</script>
+</body>
+</html>
+function renderDesempenho() {
+
+    let players = [...db.atual];
+
+    let stats = players.map(p => {
+        let jogos = p.v + p.e + (p.d || 0);
+
+        return {
+            tecnico: p.tecnico,
+            ataqueJogo: jogos ? (p.gp / jogos) : 0,
+            defesaJogo: jogos ? (p.gc / jogos) : 0,
+            vitoriaRate: jogos ? (p.v / jogos) : 0,
+            empateRate: jogos ? (p.e / jogos) : 0,
+            derrotaRate: jogos ? ((p.d || 0) / jogos) : 0,
+            gp: p.gp,
+            gc: p.gc
+        };
+    });
+
+    let melhorAtaque = [...stats].sort((a,b)=>b.ataqueJogo-a.ataqueJogo)[0];
+    let melhorDefesa = [...stats].sort((a,b)=>a.defesaJogo-b.defesaJogo)[0];
+    let piorDefesa = [...stats].sort((a,b)=>b.defesaJogo-a.defesaJogo)[0];
+    let piorAtaque = [...stats].sort((a,b)=>a.ataqueJogo-b.ataqueJogo)[0];
+
+    let maisEmpate = [...stats].sort((a,b)=>b.empateRate-a.empateRate)[0];
+    let maisDerrota = [...stats].sort((a,b)=>b.derrotaRate-a.derrotaRate)[0];
+    let maisVitoria = [...stats].sort((a,b)=>b.vitoriaRate-a.vitoriaRate)[0];
+
+    document.getElementById("table-desempenho").innerHTML = `
+    <thead>
+    <tr>
+        <th>Categoria</th>
+        <th>Técnico</th>
+        <th>Valor</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    <tr>
+        <td>🚜 Rolo Compressor (Melhor ataque/jogo)</td>
+        <td>${melhorAtaque.tecnico}</td>
+        <td>${melhorAtaque.ataqueJogo.toFixed(2)}</td>
+    </tr>
+
+    <tr>
+        <td>🧱 Muro de Berlin (Melhor defesa/jogo)</td>
+        <td>${melhorDefesa.tecnico}</td>
+        <td>${melhorDefesa.defesaJogo.toFixed(2)}</td>
+    </tr>
+
+    <tr>
+        <td>🧻 Defesa de Papel (Pior defesa)</td>
+        <td>${piorDefesa.tecnico}</td>
+        <td>${piorDefesa.defesaJogo.toFixed(2)}</td>
+    </tr>
+
+    <tr>
+        <td>🐢 Ataque de Tartaruga (Pior ataque)</td>
+        <td>${piorAtaque.tecnico}</td>
+        <td>${piorAtaque.ataqueJogo.toFixed(2)}</td>
+    </tr>
+
+    <tr>
+        <td>🤝 Mais Empates</td>
+        <td>${maisEmpate.tecnico}</td>
+        <td>${(maisEmpate.empateRate*100).toFixed(1)}%</td>
+    </tr>
+
+    <tr>
+        <td>❌ Mais Derrotas</td>
+        <td>${maisDerrota.tecnico}</td>
+        <td>${(maisDerrota.derrotaRate*100).toFixed(1)}%</td>
+    </tr>
+
+    <tr>
+        <td>🏆 Mais Vitórias</td>
+        <td>${maisVitoria.tecnico}</td>
+        <td>${(maisVitoria.vitoriaRate*100).toFixed(1)}%</td>
+    </tr>
+
+    </tbody>
+    `;
+}
